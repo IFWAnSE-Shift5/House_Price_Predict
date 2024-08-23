@@ -12,12 +12,12 @@ validation_housing = pd.read_csv('dataset/test.csv')
 
 # Combine train and test dataset
 data = pd.concat([train_housing, validation_housing], axis=0)
-print(data)
 
 # Identify and plot features with more than 1000 NULL values
 features = []
 nullValues = []
 
+# To show the features that have more than 1000 NULL values
 for i in data:
     if data.isna().sum()[i] > 1000 and i != 'SalePrice':
         features.append(i)
@@ -32,22 +32,22 @@ plt.title('Features with more than 1k NULL values')
 plt.show()
 
 # Deal with NULL values
-data = data.dropna(axis=1, thresh=1000)
-numeric_columns = data.select_dtypes(include=[np.number]).columns
-data[numeric_columns] = data[numeric_columns].fillna(data[numeric_columns].mean())
+data = data.dropna(axis=1, thresh=1000) # Drop columns with > 1000 NULL values
+numeric_columns = data.select_dtypes(include=[np.number]).columns # Select numerical columns
+data[numeric_columns] = data[numeric_columns].fillna(data[numeric_columns].mean()) # Replace NULL with mean value
 data = pd.get_dummies(data)  # Convert string values to 0/1
 
 # Deal with correlations
-covarianceMatrix = data.corr()
-listOfFeatures = [i for i in covarianceMatrix]
-setOfDroppedFeatures = set()
+covarianceMatrix = data.corr() # Correlation matrix that show correlation of columns to each column
+listOfFeatures = [i for i in covarianceMatrix] # List of feature names
+setOfDroppedFeatures = set() # Create set to collect droped features
 
 for i in range(len(listOfFeatures)):
     for j in range(i+1, len(listOfFeatures)):
         feature1 = listOfFeatures[i]
-        feature2 = listOfFeatures[j]
-        if abs(covarianceMatrix[feature1][feature2]) > 0.8:
-            if abs(covarianceMatrix[feature1]["SalePrice"]) > abs(covarianceMatrix[feature2]["SalePrice"]):
+        feature2 = listOfFeatures[j] 
+        if abs(covarianceMatrix[feature1][feature2]) > 0.8: # Identified 2 highly correlate features
+            if abs(covarianceMatrix[feature1]["SalePrice"]) > abs(covarianceMatrix[feature2]["SalePrice"]): # compare 2 features to find wihch feature have more significant than other
                 setOfDroppedFeatures.add(feature2)
             else:
                 setOfDroppedFeatures.add(feature1)
@@ -57,14 +57,6 @@ data = data.drop(setOfDroppedFeatures, axis=1)
 # Drop features not correlated with SalePrice
 nonCorrelatedWithOutput = [column for column in data if abs(data[column].corr(data["SalePrice"])) < 0.045]
 data = data.drop(nonCorrelatedWithOutput, axis=1)
-
-# Plot SalePrice vs LotArea
-plt.plot(data['LotArea'], data['SalePrice'], 'bo')
-plt.axvline(x=75000, color='r')
-plt.ylabel('SalePrice')
-plt.xlabel('LotArea')
-plt.title('SalePrice as a function of LotArea')
-plt.show()
 
 # Separate train and test sets
 train_set = data.iloc[:1460]
