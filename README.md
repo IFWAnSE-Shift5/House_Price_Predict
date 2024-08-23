@@ -1,2 +1,2 @@
 # House_Price_Predict
-To practice Random Forest algorithm
+To practice linear regression algorithm asnd basic process about data analyts
